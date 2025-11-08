@@ -1,9 +1,0 @@
-remote_theme: daviddarnes/alembic@main
-plugins:
-- jekyll-remote-theme
-
-title: Auden Lang
-description: Some examples of client interfaces to ML APIs
-
-author:
-  name: Auden (Polly) Lang
