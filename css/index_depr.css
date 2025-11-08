@@ -1,0 +1,126 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    background-color: #f5f7fa;
+    color: #333;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 20px;
+}
+
+/* Header */
+header {
+    text-align: center;
+    margin-bottom: 50px;
+}
+
+header h1 {
+    font-size: 2.6em;
+    font-weight: 700;
+    margin-bottom: 12px;
+    color: #111827;
+}
+
+header p {
+    font-size: 1.15em;
+    color: #6b7280;
+    max-width: 650px;
+    line-height: 1.5;
+    margin: 0 auto;
+}
+
+/* Section Titles */
+h2.section-title {
+    font-size: 1.8em;
+    font-weight: 600;
+    margin: 50px 0 20px;
+    color: #111827;
+    text-align: center;
+}
+
+/* About Section */
+.about {
+    max-width: 800px;
+    text-align: center;
+    font-size: 1.1em;
+    color: #4b5563;
+    line-height: 1.6;
+}
+
+/* Cards Grid */
+.card-grid {
+    display: grid;
+    gap: 25px;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    max-width: 1000px;
+    width: 100%;
+    margin-top: 20px;
+}
+
+.card {
+    background: white;
+    border-radius: 12px;
+    padding: 26px;
+    text-align: center;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.07);
+    transition: transform .3s ease, box-shadow .3s ease;
+}
+
+.card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.1);
+}
+
+.card h3 {
+    font-size: 1.3em;
+    margin-bottom: 10px;
+    color: #111827;
+    font-weight: 600;
+}
+
+.card p {
+    font-size: 0.95em;
+    color: #6b7280;
+    line-height: 1.4;
+    margin-bottom: 18px;
+}
+
+.card a {
+    display: inline-block;
+    padding: 10px 16px;
+    background: #2563eb;
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-size: 0.95em;
+    transition: background .3s ease;
+}
+
+.card a:hover {
+    background: #1d4ed8;
+}
+
+/* Tech Stack */
+.tech-stack {
+    margin-top: 20px;
+    font-size: 1.05em;
+    color: #4b5563;
+    text-align: center;
+    line-height: 1.6;
+}
+
+/* Footer */
+footer {
+    margin-top: 60px;
+    font-size: 0.9em;
+    color: #6b7280;
+    text-align: center;
+}
