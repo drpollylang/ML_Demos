@@ -1,489 +1,275 @@
-<!-- <!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <title>Microorganism Classifier</title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Roboto', sans-serif;
-            background: #f0f2f5;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 40px;
-            margin: 0;
-        }
-
-        h1 {
-            color: #333;
-            margin-bottom: 5px;
-        }
-
-        p.subtitle {
-            color: #666;
-            margin-bottom: 30px;
-        }
-
-        #dropZone {
-            width: 300px;
-            height: 300px;
-            border: 3px dashed #bbb;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #bbb;
-            cursor: pointer;
-            transition: 0.2s;
-            background: #fff;
-            margin-bottom: 20px;
-        }
-
-        #dropZone.hover {
-            border-color: #3b82f6;
-            color: #3b82f6;
-        }
-
-        #dropZone img {
-            max-width: 100%;
-            max-height: 100%;
-            border-radius: 10px;
-        }
-
-        #spinner {
-            display: none;
-            margin-bottom: 20px;
-            border: 5px solid #f3f3f3;
-            border-top: 5px solid #3b82f6;
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
-
-            100% {
-                transform: rotate(360deg);
-            }
-        }
-
-        #result {
-            width: 400px;
-            margin-bottom: 40px;
-        }
-
-        .bar-container {
-            margin-bottom: 10px;
-        }
-
-        .bar-label {
-            font-weight: bold;
-            margin-bottom: 3px;
-        }
-
-        .bar {
-            height: 20px;
-            border-radius: 5px;
-            transition: width 0.5s;
-            background: #c0c0c0;
-        }
-
-        .bar.top3 {
-            background: linear-gradient(90deg, #3b82f6, #60a5fa);
-        }
-
-        #examples {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 10px;
-        }
-
-        #examples img {
-            width: 80px;
-            height: 80px;
-            object-fit: cover;
-            border: 2px solid #ccc;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-
-        #examples img:hover {
-            transform: scale(1.05);
-            border-color: #3b82f6;
-        }
-    </style>
-</head>
-
-<body>
-
-    <h1>Microorganism Classifier</h1>
-    <p class="subtitle">Upload an image to classify it as algae, bacteria, nematode, protozoa, or virus.</p>
-
-    <div id="dropZone">Drag & Drop or Click to Upload</div>
-    <div id="spinner"></div>
-    <div id="result"></div>
-
-    <div id="examples">
-        <img src="examples/algae1.jpg" alt="Algae">
-        <img src="examples/bacteria1.jpg" alt="Bacteria">
-        <img src="examples/nematode1.jpg" alt="Nematode">
-        <img src="examples/protozoa1.jpg" alt="Protozoa">
-        <img src="examples/virus1.jpg" alt="Virus">
-    </div>
-
-    <input type="file" id="fileInput" accept="image/*" style="display:none;">
-
-    <script>
-        const dropZone = document.getElementById('dropZone');
-        const fileInput = document.getElementById('fileInput');
-        const resultDiv = document.getElementById('result');
-        const spinner = document.getElementById('spinner');
-        const exampleImages = document.querySelectorAll('#examples img');
-
-        // Replace with your Space URL
-        const SPACE_API = "https://audlang-microbeimageclassifier.hf.space/gradio_api/call/predict";
-
-        // Drag-and-drop and click events
-        dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('hover'); });
-        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('hover'));
-        dropZone.addEventListener('drop', e => { e.preventDefault(); dropZone.classList.remove('hover'); handleFile(e.dataTransfer.files[0]); });
-        dropZone.addEventListener('click', () => fileInput.click());
-        fileInput.addEventListener('change', () => handleFile(fileInput.files[0]));
-
-        // Example images
-        exampleImages.forEach(img => {
-            img.addEventListener('click', () => {
-                fetch(img.src).then(r => r.blob()).then(b => handleFile(new File([b], "example.jpg", { type: b.type })));
-            });
-        });
-
-        function handleFile(file) {
-            if (!file) return;
-            spinner.style.display = 'block';
-            resultDiv.innerHTML = '';
-
-            // preview
-            const reader = new FileReader();
-            reader.onload = e => dropZone.innerHTML = `<img src="${e.target.result}" alt="Uploaded Image">`;
-            reader.readAsDataURL(file);
-
-            // send to Gradio API
-            const reader2 = new FileReader();
-            reader2.onload = () => {
-                const base64 = reader2.result.split(',')[1];
-                const payload = {
-                    data: [{ name: file.name, data: base64, meta: { "_type": "gradio.FileData" } }]
-                };
-
-                fetch(SPACE_API, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                })
-                    .then(res => res.json())
-                    .then(json => {
-                        if (!json || !json["id"]) {
-                            spinner.style.display = 'none';
-                            resultDiv.innerHTML = "Error: No event ID returned from API";
-                            console.error("Invalid response:", json);
-                            return;
-                        }
-                        const EVENT_ID = json.id;
-                        pollResult(EVENT_ID);
-                    })
-                    .catch(err => {
-                        spinner.style.display = 'none';
-                        resultDiv.innerHTML = "Error sending file to API";
-                        console.error(err);
-                    });
-            };
-            reader2.readAsDataURL(file);
-        }
-
-        // Poll the prediction
-        function pollResult(eventId) {
-            const interval = setInterval(() => {
-                fetch(`${SPACE_API}/${eventId}`)
-                    .then(res => res.json())
-                    .then(json => {
-                        if (!json || !json.data) return; // still waiting
-                        clearInterval(interval);
-                        spinner.style.display = 'none';
-                        renderResult(json.data[0]);
-                    })
-                    .catch(err => {
-                        clearInterval(interval);
-                        spinner.style.display = 'none';
-                        resultDiv.innerHTML = "Error fetching prediction";
-                        console.error(err);
-                    });
-            }, 500);
-        }
-
-        // Render bars with top-3 highlighted
-        function renderResult(data) {
-            resultDiv.innerHTML = '';
-            const sorted = Object.entries(data).sort((a, b) => b[1] - a[1]);
-            const top3 = new Set(sorted.slice(0, 3).map(e => e[0]));
-            for (const [cls, prob] of Object.entries(data)) {
-                const container = document.createElement('div');
-                container.className = 'bar-container';
-                const label = document.createElement('div');
-                label.className = 'bar-label';
-                label.textContent = `${cls}: ${(prob * 100).toFixed(1)}%`;
-                const bar = document.createElement('div');
-                bar.className = 'bar';
-                if (top3.has(cls)) bar.classList.add('top3');
-                bar.style.width = `${prob * 100}%`;
-                container.appendChild(label);
-                container.appendChild(bar);
-                resultDiv.appendChild(container);
-            }
-        }
-    </script>
-</body>
-
-</html> -->
-
-
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <title>Microorganism Classifier</title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Machine Learning Demo Hub</title>
+
     <style>
+        :root {
+            --bg: #0f172a;
+            --text: #f8fafc;
+            --glass: rgba(255, 255, 255, 0.08);
+            --accent1: #60a5fa;
+            --accent2: #3b82f6;
+        }
+
         body {
-            font-family: 'Roboto', sans-serif;
-            background: #f0f2f5;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 40px;
             margin: 0;
+            font-family: "Inter", sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            overflow-x: hidden;
+            opacity: 0;
+            animation: fadeInPage .8s ease forwards;
         }
 
-        h1 {
-            color: #333;
-            margin-bottom: 5px;
+        /* Smooth Page Fade-In */
+        @keyframes fadeInPage {
+            to {
+                opacity: 1;
+            }
         }
 
-        p.subtitle {
-            color: #666;
-            margin-bottom: 30px;
+        /* HEADER */
+        .site-header {
+            padding: 45px 60px 28px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(10px);
+            background: rgba(15, 23, 42, 0.45);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            opacity: 0;
+            transform: translateY(-35px);
+            animation: headerEnter 0.9s ease-out forwards, headerGlow 12s ease-in-out infinite alternate;
         }
 
-        #dropZone {
-            width: 300px;
-            height: 300px;
-            border: 3px dashed #bbb;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #bbb;
-            cursor: pointer;
-            transition: border-color 0.2s, color 0.2s;
-            background: #fff;
-            margin-bottom: 20px;
+        @keyframes headerEnter {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
-        #dropZone.hover {
-            border-color: #3b82f6;
-            color: #3b82f6;
-        }
-
-        #dropZone img {
-            max-width: 100%;
-            max-height: 100%;
-            border-radius: 10px;
-        }
-
-        #spinner {
-            display: none;
-            margin-bottom: 20px;
-            border: 5px solid #f3f3f3;
-            border-top: 5px solid #3b82f6;
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
+        @keyframes headerGlow {
             0% {
-                transform: rotate(0deg);
+                box-shadow: 0 0 0px rgba(59, 130, 246, 0.0);
             }
 
             100% {
-                transform: rotate(360deg);
+                box-shadow: 0 0 22px rgba(59, 130, 246, 0.22);
             }
         }
 
-        #result {
-            width: 400px;
-            margin-bottom: 40px;
+        .site-title {
+            margin: 0;
+            font-size: 2.8rem;
+            font-weight: 600;
+            display: inline-block;
+            position: relative;
+            padding-bottom: 6px;
         }
 
-        .bar-container {
-            margin-bottom: 10px;
+        .site-title::after {
+            content: "";
+            position: absolute;
+            left: 50%;
+            bottom: 0;
+            width: 0%;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent1), var(--accent2));
+            transition: width .45s ease, left .45s ease;
         }
 
-        .bar-label {
-            font-weight: bold;
-            margin-bottom: 3px;
+        .site-header:hover .site-title::after {
+            width: 60%;
+            left: 20%;
         }
 
-        .bar {
-            height: 20px;
-            border-radius: 5px;
-            transition: width 0.5s;
-            background: #c0c0c0;
+        /* GRID */
+        .content {
+            max-width: 1150px;
+            margin: 60px auto;
+            padding: 0 30px;
+            display: grid;
+            gap: 28px;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
         }
 
-        .bar.top3 {
-            background: linear-gradient(90deg, #3b82f6, #60a5fa);
+        /* GLASS CARD */
+        .card {
+            background: var(--glass);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            padding: 26px;
+            border-radius: 18px;
+            backdrop-filter: blur(14px);
+            transition: transform .4s ease, box-shadow .4s ease, border-color .4s;
+            opacity: 0;
+            transform: translateY(35px);
+            animation: cardFadeIn .7s ease forwards;
         }
 
-        #examples {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 10px;
+        /* Staggered card entrance */
+        .card:nth-child(1) {
+            animation-delay: .15s;
         }
 
-        #examples img {
-            width: 80px;
-            height: 80px;
-            object-fit: cover;
-            border: 2px solid #ccc;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: transform 0.2s, border-color 0.2s;
+        .card:nth-child(2) {
+            animation-delay: .3s;
         }
 
-        #examples img:hover {
-            transform: scale(1.05);
-            border-color: #3b82f6;
+        .card:nth-child(3) {
+            animation-delay: .45s;
+        }
+
+        .card:nth-child(4) {
+            animation-delay: .6s;
+        }
+
+        .card:nth-child(5) {
+            animation-delay: .75s;
+        }
+
+        @keyframes cardFadeIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Card Hover Glow */
+        .card:hover {
+            transform: translateY(-6px) scale(1.02);
+            border-color: rgba(255, 255, 255, 0.35);
+            box-shadow: 0 0 22px rgba(59, 130, 246, 0.35);
+        }
+
+        .card h2 {
+            margin-top: 0;
+            color: var(--accent1);
+        }
+
+        /* BUTTON */
+        .btn {
+            display: inline-block;
+            margin-top: 14px;
+            padding: 10px 18px;
+            border-radius: 10px;
+            text-decoration: none;
+            color: var(--text);
+            background: linear-gradient(90deg, var(--accent1), var(--accent2));
+            transition: transform .35s ease;
+        }
+
+        .btn:hover {
+            transform: scale(1.07);
+        }
+
+        /* ===== INFO SECTIONS ===== */
+        .section {
+            max-width: 900px;
+            margin: 80px auto;
+            padding: 0 40px;
+            text-align: center;
+            opacity: 0;
+            transform: translateY(40px);
+            transition: 0.9s ease;
+        }
+
+        .section.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .section h3 {
+            font-size: 2rem;
+            margin-bottom: 14px;
+        }
+
+        .section p,
+        .section ul {
+            opacity: .85;
+            line-height: 1.6;
+            font-size: 1.05rem;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        ul li {
+            margin: 8px 0;
+        }
+
+        /* FOOTER */
+        footer {
+            margin-top: 90px;
+            padding: 30px;
+            text-align: center;
+            opacity: .75;
+            font-size: .9rem;
         }
     </style>
 </head>
 
 <body>
 
-    <h1>Microorganism Classifier</h1>
-    <p class="subtitle">Upload an image to classify it as algae, bacteria, nematode, protozoa, or virus.</p>
+    <header class="site-header">
+        <h1 class="site-title">Machine Learning Demo Hub</h1>
+    </header>
 
-    <div id="dropZone">Drag & Drop or Click to Upload</div>
-    <div id="spinner"></div>
-    <div id="result"></div>
+    <div class="content">
 
-    <div id="examples">
-        <img src="examples/algae1.jpg" alt="Algae">
-        <img src="examples/bacteria1.jpg" alt="Bacteria">
-        <img src="examples/nematode1.jpg" alt="Nematode">
-        <img src="examples/protozoa1.jpg" alt="Protozoa">
-        <img src="examples/virus1.jpg" alt="Virus">
+        <div class="card">
+            <h2>Microbe Classifier</h2>
+            <p>Classifies microscopic organisms from images.</p>
+            <a href="microbe-classifier.html" class="btn">Launch App →</a>
+        </div>
+
+        <div class="card">
+            <h2>New Project</h2>
+            <p>TODO</p>
+            <a href="#" class="btn">Launch App →</a>
+        </div>
+
+        <div class="card">
+            <h2>New Project</h2>
+            <p>TODO</p>
+            <a href="#" class="btn">Launch App →</a>
+        </div>
+
     </div>
 
-    <input type="file" id="fileInput" accept="image/*" style="display:none;">
+    <!-- ABOUT SECTION -->
+    <div class="section">
+        <h3>About These Models</h3>
+        <p>
+            Each model showcased here was trained using modern deep learning techniques, leveraging convolutional neural
+            networks and curated datasets.
+            The goal of this demo hub is to provide hands-on, visual interactions with machine learning applications in
+            real-world scientific and medical contexts.
+        </p>
+    </div>
 
-    <script>
-        const dropZone = document.getElementById('dropZone');
-        const fileInput = document.getElementById('fileInput');
-        const resultDiv = document.getElementById('result');
-        const spinner = document.getElementById('spinner');
-        const exampleImages = document.querySelectorAll('#examples img');
+    <!-- TECH STACK -->
+    <div class="section">
+        <h3>Tech Stack</h3>
+        <ul>
+            <li>Python + Jupyter + PyTorch + FastAI for model training</li>
+            <li>Gradio + Hugging Face Spaces for app deployment</li>
+            <li>HTML/CSS/JS + GitHub Pages for this site</li>
+            <li>Responsive design with CSS hover + scroll animations</li>
+        </ul>
+    </div>
 
-        // Replace with your HF Space API
-        const SPACE_API = "https://audlang-microbeimageclassifier.hf.space/gradio_api/call/predict";
+    <footer>
+        Made with ❤️ using FastAI & Hugging Face • <a href="#">GitHub</a> • <a href="#">LinkedIn</a>
+    </footer>
 
-        // Drag-and-drop and click events
-        dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('hover'); });
-        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('hover'));
-        dropZone.addEventListener('drop', e => { e.preventDefault(); dropZone.classList.remove('hover'); handleFile(e.dataTransfer.files[0]); });
-        dropZone.addEventListener('click', () => fileInput.click());
-        fileInput.addEventListener('change', () => handleFile(fileInput.files[0]));
-
-        // Click example images
-        exampleImages.forEach(img => {
-            img.addEventListener('click', () => {
-                fetch(img.src)
-                    .then(r => r.blob())
-                    .then(b => handleFile(new File([b], "example.jpg", { type: b.type })));
-            });
-        });
-
-        function handleFile(file) {
-            if (!file) return;
-            spinner.style.display = 'block';
-            resultDiv.innerHTML = '';
-
-            // preview image
-            const reader = new FileReader();
-            reader.onload = e => dropZone.innerHTML = `<img src="${e.target.result}" alt="Uploaded Image">`;
-            reader.readAsDataURL(file);
-
-            // read file as base64
-            const reader2 = new FileReader();
-            reader2.onload = () => {
-                const base64 = reader2.result.split(',')[1];
-                const payload = { data: [{ name: file.name, data: base64, meta: { "_type": "gradio.FileData" } }] };
-
-                fetch(SPACE_API, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                })
-                    .then(res => res.json())
-                    .then(json => {
-                        spinner.style.display = 'none';
-                        if (!json || !json.data || !Array.isArray(json.data) || json.data.length === 0) {
-                            resultDiv.innerHTML = "Error: API returned no prediction data";
-                            console.error("Invalid response:", json);
-                            return;
-                        }
-                        renderResult(json.data[0]);
-                    })
-                    .catch(err => {
-                        spinner.style.display = 'none';
-                        resultDiv.innerHTML = "Error communicating with API";
-                        console.error(err);
-                    });
-            };
-            reader2.readAsDataURL(file);
-        }
-
-        // render prediction bars
-        function renderResult(data) {
-            resultDiv.innerHTML = '';
-            const sorted = Object.entries(data).sort((a, b) => b[1] - a[1]);
-            const top3 = new Set(sorted.slice(0, 3).map(e => e[0]));
-            for (const [cls, prob] of Object.entries(data)) {
-                const container = document.createElement('div');
-                container.className = 'bar-container';
-                const label = document.createElement('div');
-                label.className = 'bar-label';
-                label.textContent = `${cls}: ${(prob * 100).toFixed(1)}%`;
-                const bar = document.createElement('div');
-                bar.className = 'bar';
-                if (top3.has(cls)) bar.classList.add('top3');
-                bar.style.width = `${prob * 100}%`;
-                container.appendChild(label);
-                container.appendChild(bar);
-                resultDiv.appendChild(container);
-            }
-        }
-    </script>
 </body>
 
 </html>

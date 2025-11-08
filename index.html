@@ -4,7 +4,137 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Microorganism Image Classifier</title>
+    <title>ML Demo Hub</title>
+
+    <!--<style>
+        /* Reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f5f7fa;
+            color: #333;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+        }
+
+        /* Header */
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        header h1 {
+            font-size: 2.6em;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: #111827;
+        }
+
+        header p {
+            font-size: 1.15em;
+            color: #6b7280;
+            max-width: 650px;
+            line-height: 1.5;
+            margin: 0 auto;
+        }
+
+        /* Section Titles */
+        h2.section-title {
+            font-size: 1.8em;
+            font-weight: 600;
+            margin: 50px 0 20px;
+            color: #111827;
+            text-align: center;
+        }
+
+        /* About Section */
+        .about {
+            max-width: 800px;
+            text-align: center;
+            font-size: 1.1em;
+            color: #4b5563;
+            line-height: 1.6;
+        }
+
+        /* Cards Grid */
+        .card-grid {
+            display: grid;
+            gap: 25px;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            max-width: 1000px;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 26px;
+            text-align: center;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.07);
+            transition: transform .3s ease, box-shadow .3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.1);
+        }
+
+        .card h3 {
+            font-size: 1.3em;
+            margin-bottom: 10px;
+            color: #111827;
+            font-weight: 600;
+        }
+
+        .card p {
+            font-size: 0.95em;
+            color: #6b7280;
+            line-height: 1.4;
+            margin-bottom: 18px;
+        }
+
+        .card a {
+            display: inline-block;
+            padding: 10px 16px;
+            background: #2563eb;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 0.95em;
+            transition: background .3s ease;
+        }
+
+        .card a:hover {
+            background: #1d4ed8;
+        }
+
+        /* Tech Stack */
+        .tech-stack {
+            margin-top: 20px;
+            font-size: 1.05em;
+            color: #4b5563;
+            text-align: center;
+            line-height: 1.6;
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 60px;
+            font-size: 0.9em;
+            color: #6b7280;
+            text-align: center;
+        }
+    </style>-->
     <style>
         /* Reset */
         * {
@@ -17,75 +147,261 @@
             font-family: 'Helvetica Neue', Arial, sans-serif;
             background-color: #f5f7fa;
             color: #333;
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
-            min-height: 100vh;
             padding: 40px 20px;
         }
 
+        /* Header */
         header {
             text-align: center;
             margin-bottom: 40px;
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: opacity 1s ease, transform 1s ease;
+        }
+
+        header.visible {
+            opacity: 1;
+            transform: translateY(0);
         }
 
         header h1 {
-            font-size: 2.2em;
+            font-size: 2.6em;
             font-weight: 700;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
             color: #111827;
         }
 
         header p {
-            font-size: 1.1em;
+            font-size: 1.15em;
             color: #6b7280;
+            max-width: 650px;
+            line-height: 1.5;
+            margin: 0 auto;
         }
 
-        .iframe-container {
+        /* Section Titles */
+        h2.section-title {
+            font-size: 1.8em;
+            font-weight: 600;
+            margin: 40px 0 20px;
+            color: #111827;
+            text-align: center;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 1s ease, transform 1s ease;
+        }
+
+        h2.section-title.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* About Section */
+        .about {
+            max-width: 800px;
+            text-align: center;
+            font-size: 1.1em;
+            color: #4b5563;
+            line-height: 1.6;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 1s ease, transform 1s ease;
+        }
+
+        .about.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Cards Grid */
+        .card-grid {
+            display: grid;
+            gap: 25px;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            max-width: 1000px;
             width: 100%;
-            max-width: 900px;
-            height: 500px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+        }
+
+        .card {
+            background: white;
             border-radius: 12px;
-            overflow: hidden;
-            background: #fff;
+            padding: 26px;
+            text-align: center;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.07);
+            opacity: 0;
+            transform: translateY(20px);
+            transition: transform .3s ease, box-shadow .3s ease, opacity 0.8s ease, transform 0.8s ease;
         }
 
-        iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
+        .card.visible {
+            opacity: 1;
+            transform: translateY(0);
         }
 
+        .card h3 {
+            font-size: 1.3em;
+            margin-bottom: 10px;
+            color: #111827;
+            font-weight: 600;
+        }
+
+        .card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.1);
+        }
+
+        .card p {
+            font-size: 0.95em;
+            color: #6b7280;
+            line-height: 1.4;
+            margin-bottom: 18px;
+        }
+
+        .card a {
+            display: inline-block;
+            padding: 10px 16px;
+            background: #2563eb;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 0.95em;
+            transition: background .3s ease;
+        }
+
+        .card a:hover {
+            background: #1d4ed8;
+        }
+
+        /* BUTTON */
+        .btn {
+            display: inline-block;
+            margin-top: 14px;
+            padding: 10px 18px;
+            border-radius: 10px;
+            text-decoration: none;
+            color: var(--text);
+            background: linear-gradient(90deg, var(--accent1), var(--accent2));
+            transition: transform .35s ease;
+        }
+
+        .btn:hover {
+            transform: scale(1.07);
+        }
+
+        /* Tech Stack */
+        .tech-stack {
+            margin-top: 20px;
+            font-size: 1.05em;
+            color: #4b5563;
+            text-align: center;
+            line-height: 1.6;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 1s ease, transform 1s ease;
+        }
+
+        .tech-stack.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+
+        /* Footer */
         footer {
-            margin-top: 50px;
+            margin-top: 60px;
             font-size: 0.9em;
             color: #6b7280;
             text-align: center;
-        }
-
-        @media (max-width: 600px) {
-            .iframe-container {
-                height: 400px;
-            }
         }
     </style>
 </head>
 
 <body>
 
-    <header>
-        <h1>Microorganism Image Classifier</h1>
-        <p>Upload an image or choose an example to classify microorganisms using our AI model</p>
+    <header class="fade">
+        <h1>Machine Learning Demo Hub</h1>
+        <p>Welcome! Explore a collection of machine learning models deployed as interactive web demos.</p>
     </header>
 
-    <div class="iframe-container">
-        <iframe src="https://audlang-microbeimageclassifier.hf.space" title="Microorganism Classifier"></iframe>
+    <!--<h2 class="section-title fade">ML Demo Apps</h2>-->
+    <div class="card-grid">
+        <div class="card fade">
+            <h3>Microbe Image Classifier</h3>
+            <p>Identify microscopic organisms such as algae, bacteria, protozoa, viruses, and nematodes.</p>
+            <a href="pages/microbe-classifier.html" class="btn">Launch App →</a>
+        </div>
+        <div class="card fade">
+            <h3>New Project</h3>
+            <p>TODO</p>
+            <a href="#" class="btn">Launch App →</a>
+        </div>
+        <div class="card fade">
+            <h3>New Project</h3>
+            <p>TODO</p>
+            <a href="#" class="btn">Launch App →</a>
+        </div>
     </div>
 
-    <footer>
-        &copy; 2025 MicrobeAI. Powered by Hugging Face Spaces.
+    <h2 class="section-title fade">About This Project</h2>
+    <p class="about fade">
+        This project showcases practical applications of deep learning in biology, health, and environmental science.
+        Each demo runs a real trained model and can be tested directly in the browser.
+    </p>
+
+    <h2 class="section-title fade">Tech Stack</h2>
+    <p class="tech-stack fade">
+        <!--FastAI · PyTorch · Gradio · Hugging Face Spaces · HTML/CSS/JavaScript · GitHub Pages-->
+        Python + PyTorch + FastAI for model training
+    </p>
+    <p class="tech-stack fade">
+        Gradio + Hugging Face Spaces for app deployment
+    </p>
+    <p class="tech-stack fade">
+        HTML/CSS/JS + GitHub Pages for this site
+    </p>
+    <p class="tech-stack fade">
+        Responsive design with CSS hover + scroll animations
+    </p>
+
+    <footer class="fade">
+        Made with ❤️ using FastAI & Hugging Face • <a href="https://github.com/drpollylang">GitHub</a> • <a
+            href="https://linkedin.com/in/polly-lang-75a470130">LinkedIn</a>
     </footer>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Show all top elements that are in view immediately
+            document.querySelectorAll('.fade').forEach(el => {
+                const rect = el.getBoundingClientRect();
+                if (rect.top < window.innerHeight) el.classList.add('visible');
+            });
+
+            // IntersectionObserver for cards and tech stack
+            const observerOptions = { threshold: 0.1 };
+            const observer = new IntersectionObserver((entries, obs) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        if (entry.target.classList.contains('card')) {
+                            // Stagger each card
+                            const index = Array.from(document.querySelectorAll('.card')).indexOf(entry.target);
+                            setTimeout(() => entry.target.classList.add('visible'), index * 150);
+                        } else {
+                            entry.target.classList.add('visible');
+                        }
+                        obs.unobserve(entry.target);
+                    }
+                });
+            }, observerOptions);
+
+            document.querySelectorAll('.card, .tech-stack').forEach(el => observer.observe(el));
+        });
+    </script>
 
 </body>
 
